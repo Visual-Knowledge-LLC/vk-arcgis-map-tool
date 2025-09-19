@@ -1,0 +1,4 @@
+requests
+arcgis
+pandas
+python-dotenv
