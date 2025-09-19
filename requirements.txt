@@ -2,3 +2,4 @@ requests
 arcgis
 pandas
 python-dotenv
+vk-api-utils>=0.1.0

@@ -1,8 +1,10 @@
 import bbb
-from vk_slack import SlackNotifier as slack
+from vk_api_utils import SlackNotifier
+
+slack = SlackNotifier("GIS Mapping Application")
 
 # Run start execution slack message
-slack.send_message("GIS Mapping Application", "Started")
+slack.send_message("Started")
 
 script_name = ''
 
@@ -12,9 +14,9 @@ try:
     bbb.run_mapping_application()
 
 except Exception as error_message:
-    slack.send_error('GIS Mapping Application',f"Failed to run {script_name} with error: {str(error_message)}")
+    slack.send_error(f"Failed to run {script_name} with error: {str(error_message)}")
     print(f'Error: {script_name}, {error_message}')
     exit(0)
 
 # Run end execution slack message
-slack.send_message("GIS Mapping Application", "Completed")
+slack.send_message("Completed")
