@@ -2,4 +2,4 @@ requests
 arcgis
 pandas
 python-dotenv
-vk-api-utils>=0.1.0
+git+https://github.com/Visual-Knowledge-LLC/vk-api-utils.git@v0.1.1
