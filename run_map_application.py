@@ -3,20 +3,22 @@ from vk_api_utils import SlackNotifier
 
 slack = SlackNotifier("GIS Mapping Application")
 
-# Run start execution slack message
-slack.send_message("Started")
+# Start execution with threaded messaging
+slack.notify_start()
 
 script_name = ''
 
 try:
     # Post ArcGIS data
     script_name = "bbb.py"
+    slack.notify_progress("Running BBB data collection and mapping")
     bbb.run_mapping_application()
 
-except Exception as error_message:
-    slack.send_error(f"Failed to run {script_name} with error: {str(error_message)}")
-    print(f'Error: {script_name}, {error_message}')
-    exit(0)
+    # Success notification in thread
+    slack.notify_success("Completed successfully")
 
-# Run end execution slack message
-slack.send_message("Completed")
+except Exception as error_message:
+    # Error notification in thread
+    slack.notify_error(f"Failed to run {script_name}: {str(error_message)}")
+    print(f'Error: {script_name}, {error_message}')
+    exit(1)
