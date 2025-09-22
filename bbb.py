@@ -536,7 +536,7 @@ def upload_to_arcgis(bbb_id, skip=False):
     
     url = "https://visual-knowledge.maps.arcgis.com/"
     username = "visualknowledge"
-    password = "wttwdemo20"
+    password = "McKenzie123!!"
 
     try:
         gis = GIS(url, username, password)
@@ -621,7 +621,7 @@ def upload_to_arcgis(bbb_id, skip=False):
     print(f"COMPLETED: ArcGIS upload for {bbb_id} - {success_count}/{len(titles)} successful")
     return success_count > 0
 
-def run_mapping_application():
+def run_mapping_application(skip_processed=False, specific_bbb_ids=None):
     """Main function to run the mapping application with options to skip steps"""
     print()
     print("===================================")
@@ -649,12 +649,13 @@ def run_mapping_application():
     
     # Additional configuration to process only specific BBB IDs
     # Leave empty to process all, or add IDs to process only those
-    specific_bbb_ids = []  # e.g., ["0694", "1066"]
+    if specific_bbb_ids is None:
+        specific_bbb_ids = []
     ignore_bbb_ids = [] # specify which BBBs to ignore from the list
 
     # Execute the workflow
     bbb_ids, bbb_names = fetch_bbb_ids(skip=skip_fetch_bbb_ids)
-    
+
     # Filter to specific BBB IDs if requested
     if specific_bbb_ids:
         filtered_ids = []
@@ -681,9 +682,26 @@ def run_mapping_application():
 
     for index, bbb_id in enumerate(bbb_ids):
         bbb_name = bbb_names[index] if index < len(bbb_names) else "Unknown"
-        
+
         print(f"\nProcessing BBB ID: {bbb_id} ({bbb_name})\n" + "="*50)
-        
+
+        # Check if we should skip this BBB
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Check if zip file exists
+        zip_file_path = os.path.join(script_dir, "zips", f"{bbb_id}_zips.csv")
+        if not os.path.exists(zip_file_path):
+            print(f"WARNING: No zip file found for {bbb_id} at {zip_file_path}")
+            print(f"Skipping {bbb_id} ({bbb_name})")
+            continue
+
+        # Check if already processed (if skip_processed flag is set)
+        if skip_processed:
+            results_path = os.path.join(script_dir, "results", f"{bbb_id}.csv")
+            if os.path.exists(results_path):
+                print(f"Already processed {bbb_id} ({bbb_name}), skipping due to --skip-processed flag")
+                continue
+
         # Step 1: Fetch zip codes
         zip_codes = fetch_zip_codes(bbb_id, skip=skip_fetch_zip_codes)
         
@@ -721,5 +739,26 @@ def run_mapping_application():
         
         print(f"\nCompleted processing for {bbb_id} ({bbb_name})")
 
+def main():
+    """Main entry point for the script"""
+    import argparse
+
+    parser = argparse.ArgumentParser(description='VK BBB Partner API Tool - Direct Execution')
+    parser.add_argument('--no-slack', action='store_true', help='Disable Slack notifications')
+    parser.add_argument('--skip-processed', action='store_true', help='Skip BBBs that already have output files')
+    parser.add_argument('--bbb-ids', nargs='+', help='Process only specific BBB IDs (e.g., --bbb-ids 1126 0995)')
+    args = parser.parse_args()
+
+    # Set environment variable for Slack notifications if disabled
+    if args.no_slack:
+        os.environ['DISABLE_SLACK'] = '1'
+        print("Slack notifications disabled")
+
+    # Run the application with the provided arguments
+    run_mapping_application(
+        skip_processed=args.skip_processed,
+        specific_bbb_ids=args.bbb_ids
+    )
+
 if __name__ == "__main__":
-    run_mapping_application()
+    main()
